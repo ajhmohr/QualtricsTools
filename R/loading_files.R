@@ -37,7 +37,7 @@ load_qsf_data <- function(file1) {
     if (is.null(file1)) {
         survey <- sample_survey
     } else {
-        survey <- ask_for_qsf(file1[['datapath']])
+        survey <- (file1[['datapath']])
     }
 }
 
