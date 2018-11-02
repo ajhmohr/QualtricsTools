@@ -190,6 +190,9 @@ choice_text_from_question <- function(question, choice) {
         choice <- question[['Payload']][['Answers']][[choice]][[1]]
     }
   }
+  
+  # if the answer is a side by side table option, 
+  # ADD Things here
 
   if (original %in% c(-99, "-99"))
     choice <- "Seen, but Unanswered"
