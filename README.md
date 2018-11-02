@@ -1,3 +1,5 @@
+**(WARNING: This is a fork with experimental code. Please use original at emmamorgan-tufts/QualtricsTools)**
+
 # QualtricsTools 
 
 QualtricsTools is an [R](https://www.r-project.org/) package that automatically processes Qualtrics survey data into 
