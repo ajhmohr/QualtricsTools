@@ -21,8 +21,9 @@ is_mc_multiple_answer <- function(question) {
     has_MultipleAnswer_selector = (question[['Payload']][['Selector']] == "MAVR" ||
                                    question[['Payload']][['Selector']] == "MAHR" ||
                                    question[['Payload']][['Selector']] == "MSB" ||
-                                   question[['Payload']][['Selector']] == "MACOL" ||
-                                   question[['Payload']][['Selector']] == "SACOL")
+                                   question[['Payload']][['Selector']] == "MACOL" #||
+                                  # question[['Payload']][['Selector']] == "SACOL"
+                                    )
 
     is_Multiple_Answer = isTRUE(is_Multiple_Choice && has_MultipleAnswer_selector)
 
@@ -70,7 +71,7 @@ is_mc_single_answer <- function(question) {
     has_SingleAnswer_selector = (question[['Payload']][['Selector']] == "SAVR" ||
                                  question[['Payload']][['Selector']] == "SAHR" ||
                                  question[['Payload']][['Selector']] == "DL" ||
-                                # question[['Payload']][['Selector']] == "SACOL" ||
+                                 question[['Payload']][['Selector']] == "SACOL" ||
                                  question[['Payload']][['Selector']] == "SB")
     is_MC_Single_answer <- isTRUE(is_Multiple_Choice && has_SingleAnswer_selector)
     return(is_MC_Single_answer)

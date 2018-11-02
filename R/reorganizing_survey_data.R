@@ -1483,8 +1483,7 @@ create_response_column_dictionary <-
                   tryCatch(
                     create_entry_MC(
                       question = blocks[[b]][['BlockElements']][[be]],
-                      choice_column = c,
-                      original_first_row = original_first_row
+                      choice_column = c
                     ),
                     error = function(e) {
                       cat(
