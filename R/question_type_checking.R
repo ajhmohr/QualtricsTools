@@ -70,7 +70,7 @@ is_mc_single_answer <- function(question) {
     has_SingleAnswer_selector = (question[['Payload']][['Selector']] == "SAVR" ||
                                  question[['Payload']][['Selector']] == "SAHR" ||
                                  question[['Payload']][['Selector']] == "DL" ||
-                                # question[['Payload']][['Selector']] == "SACOL" ||
+                                 question[['Payload']][['Selector']] == "SACOL" ||
                                  question[['Payload']][['Selector']] == "SB")
     is_MC_Single_answer <- isTRUE(is_Multiple_Choice && has_SingleAnswer_selector)
     return(is_MC_Single_answer)
