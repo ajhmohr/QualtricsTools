@@ -1354,11 +1354,12 @@ create_response_column_dictionary <-
           question[['Payload']][['SubSelector']] <- ""
         }
 
+       
         # get the choice text and append it to the question text based on the
         # response column and the original_first_row entry in that column
         rcol <- names(question[['Responses']])[[response_column]]
         choice_text <-
-          choice_text_from_response_column(rcol, original_first_row, blocks)
+          choice_text_from_response_column(rcol, original_first_row, blocks) 
 
         return(
           c(
@@ -1379,8 +1380,44 @@ create_response_column_dictionary <-
             # Response Type:
             question[['Payload']][['QuestionTypeHuman']]
           )
-        )
+        ) 
       }
+    
+    create_entry_MC <-
+      function(question,
+               choice_column,
+               original_first_row) {
+        # make sure that the subselector either exists or is set to "", so that
+        # including it in an entry doesn't error
+        if (!("SubSelector" %in% names(question[['Payload']]))) {
+          question[['Payload']][['SubSelector']] <- ""
+        }
+        
+        #For matrix and text questions:
+          choice_text <- choice_text_from_question(question, choice=choice_column)
+          
+          return(
+            c(
+              # Question Data Export Tag:
+              question[['Payload']][['DataExportTag']],
+              # Question Data Export Tag repeated (Response Column):
+              question[['Payload']][['DataExportTag']],
+              # Question Stem:
+              question[['Payload']][['QuestionTextClean']],
+              # Question Choice:
+              choice_text,
+              # Question Type 1:
+              question[['Payload']][['QuestionType']],
+              # Question Type 2:
+              question[['Payload']][['Selector']],
+              # Question Type 3:
+              question[['Payload']][['SubSelector']],
+              # Response Type:
+              question[['Payload']][['QuestionTypeHuman']]
+            )
+          )
+        }
+    
 
     # create a dictionary as a list to store row-entries in.
     # for each block element, try to create an entry and add it
@@ -1409,6 +1446,7 @@ create_response_column_dictionary <-
                     create_entry(
                       question = blocks[[b]][['BlockElements']][[be]],
                       response_column = c,
+                      choice_column = NULL,
                       original_first_row = original_first_row
                     ),
                     error = function(e) {
@@ -1428,6 +1466,45 @@ create_response_column_dictionary <-
                   )
               }
             }
+          } 
+          else{
+          if ("Choices" %in% names(blocks[[b]][['BlockElements']][[be]][['Payload']]) &&
+              !is.null(blocks[[b]][['BlockElements']][[be]][['Payload']][['Choices']])) {
+            choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Choices']])
+            #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
+            if (choicen > 0) {
+              for (c in 1:choicen) {
+                # if a block element has choices,
+                # for each choice increment the dictionary index e once,
+                # and try to add to the dictionary the entry for that
+                # choice. If creating the entry fails, return to the
+                # console a message saying so.
+                e <- e + 1
+                dictionary[[e]] <-
+                  tryCatch(
+                    create_entry_MC(
+                      question = blocks[[b]][['BlockElements']][[be]],
+                      choice_column = c,
+                      original_first_row = original_first_row
+                    ),
+                    error = function(e) {
+                      cat(
+                        paste0(
+                          "\nCreating an entry for the following question failed. \nDataExportTag: "
+                          ,
+                          blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
+                          ,
+                          "\nResponse Column: "
+                          ,
+                          c
+                        )
+                      )
+                      return(NULL)
+                    }
+                  )
+              }
+            }
+          }
           }
         }
       }
