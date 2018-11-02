@@ -21,8 +21,7 @@ is_mc_multiple_answer <- function(question) {
     has_MultipleAnswer_selector = (question[['Payload']][['Selector']] == "MAVR" ||
                                    question[['Payload']][['Selector']] == "MAHR" ||
                                    question[['Payload']][['Selector']] == "MSB" ||
-                                   question[['Payload']][['Selector']] == "MACOL" #||
-                                  # question[['Payload']][['Selector']] == "SACOL"
+                                   question[['Payload']][['Selector']] == "MACOL"
                                     )
 
     is_Multiple_Answer = isTRUE(is_Multiple_Choice && has_MultipleAnswer_selector)
