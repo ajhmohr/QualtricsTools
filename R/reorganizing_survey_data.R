@@ -1446,6 +1446,7 @@ create_response_column_dictionary <-
                     create_entry(
                       question = blocks[[b]][['BlockElements']][[be]],
                       response_column = c,
+                      choice_column = NULL,
                       original_first_row = original_first_row
                     ),
                     error = function(e) {
@@ -1503,6 +1504,45 @@ create_response_column_dictionary <-
                   )
               }
             }
+          } 
+          else{
+          if ("Choices" %in% names(blocks[[b]][['BlockElements']][[be]][['Payload']]) &&
+              !is.null(blocks[[b]][['BlockElements']][[be]][['Payload']][['Choices']])) {
+            choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Choices']])
+            #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
+            if (choicen > 0) {
+              for (c in 1:choicen) {
+                # if a block element has choices,
+                # for each choice increment the dictionary index e once,
+                # and try to add to the dictionary the entry for that
+                # choice. If creating the entry fails, return to the
+                # console a message saying so.
+                e <- e + 1
+                dictionary[[e]] <-
+                  tryCatch(
+                    create_entry_MC(
+                      question = blocks[[b]][['BlockElements']][[be]],
+                      choice_column = c,
+                      original_first_row = original_first_row
+                    ),
+                    error = function(e) {
+                      cat(
+                        paste0(
+                          "\nCreating an entry for the following question failed. \nDataExportTag: "
+                          ,
+                          blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
+                          ,
+                          "\nResponse Column: "
+                          ,
+                          c
+                        )
+                      )
+                      return(NULL)
+                    }
+                  )
+              }
+            }
+          }
           }
           }
         }
