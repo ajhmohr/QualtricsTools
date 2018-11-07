@@ -1445,8 +1445,11 @@ create_response_column_dictionary <-
         question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], 
                                          question[['Payload']][['Choices']][[q]][[1]])
         
+        export_tag <- question[['Payload']][['ChoiceDataExportTags']][[response_column]]
+        
         if (question[['Payload']][['Selector']] != "Profile") {
           choice_text <- choice_text_by_order(question, choice=choice_column)
+          
         } else {
           choice_text <- choice_text_by_order(question, choice=choice_column, subquestion=response_column)
         }
@@ -1458,7 +1461,7 @@ create_response_column_dictionary <-
             # Question Data Export Tag:
             question[['Payload']][['DataExportTag']],
             # Question Data Export Tag repeated (Response Column):
-            question[['Payload']][['DataExportTag']],
+            export_tag,
             # Question Stem:
             question_text_specifics,
             # Recode Value
