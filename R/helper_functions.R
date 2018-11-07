@@ -204,6 +204,131 @@ choice_text_from_question <- function(question, choice) {
 
 
 
+#' Choice text by ORDER
+#'
+#' Input a question and a variable corresponding the order of a choice,
+#' and this function returns the choice text. The function
+#' works by determining the question type and some question properties
+#' and then using a combination of the question's list of choices
+#' and related values. The text is then cleaned of any HTML before
+#' returned.
+#' @param question This is a list object representing an individual question
+#' from a Qualtrics Survey File. The question must have a paired
+#' response column placed into the question
+#' under [['Responses']]. The insertion of the responses into questions is
+#' handled by link_responses_to_questions.
+#' @param choice A numeric value representing order of response (Qualtrics default code) made in a response
+#' to the question provided. This choice can be a choice in a cell in the
+#' response columns associated with the given question, but it can also be a
+#' choice which was not chosen by any respondents in the responses dataframe
+#' as long as it is a choice built into the question's construction.
+choice_text_by_order <- function(question, choice) {
+  original <- choice
+  #choice <- as.character(choice)
+  
+  # if the question is a multiple answer question,
+  # meaning some form of "check all that apply",
+  # then the answers are boolean valued -- either they
+  # checked it or they didn't. Return TRUE, FALSE, or
+  # "Seen, but Unanswered" depending.
+  if (is_multiple_answer(question)) {
+    if (choice %in% c(1, "1")) {
+      choice <- "Selected"
+    } else {
+      choice <- "Not Selected"
+    }
+    
+    # if the question is a single answer multiple choice
+    # question, getting it directly from
+    # the choices.
+  } else if (is_mc_single_answer(question)) {
+    if (choice <= length(question[['Payload']][['Choices']])) {
+      choice <- question[['Payload']][['Choices']][[choice]][[1]]
+    }
+   
+    
+    
+    # if the question is a single answer matrix question,
+    # If that doesn't work, just use the original choice given.
+  } else if (is_matrix_single_answer(question)) {
+    if (choice <= length(question[['Payload']][['Choices']])) {
+      choice <- question[['Payload']][['Choices']][[choice]][[1]]
+  } }
+  
+  # if the answer is a side by side table option, 
+  # ADD Things here
+  
+  if (original %in% c(-99, "-99"))
+    choice <- "Seen, but Unanswered"
+  if (is.na(choice))
+    choice <- ""
+  choice <- clean_html(choice)
+  return(choice)
+}
+
+
+#' Recoded value by ORDER
+#'
+#' Input a question and a variable corresponding the order of a choice,
+#' and this function returns recoded value. 
+#' @param question This is a list object representing an individual question
+#' from a Qualtrics Survey File. The question must have a paired
+#' response column placed into the question
+#' under [['Responses']]. The insertion of the responses into questions is
+#' handled by link_responses_to_questions.
+#' @param choice A numeric value representing order of response (Qualtrics default code) made in a response
+#' to the question provided. This choice can be a choice in a cell in the
+#' response columns associated with the given question, but it can also be a
+#' choice which was not chosen by any respondents in the responses dataframe
+#' as long as it is a choice built into the question's construction.
+recode_value_by_order <- function(question, choice) {
+  original <- choice
+  choice <- as.character(choice)
+  
+  # if the question is a multiple answer question,
+  # meaning some form of "check all that apply",
+  # then the answers are boolean valued -- either they
+  # checked it or they didn't. Return TRUE, FALSE, or
+  # "Seen, but Unanswered" depending.
+  if (is_multiple_answer(question)) {
+    if (choice %in% c(1, "1")) {
+      choice <- 1
+    } else {
+      choice <- 0
+    }
+    
+    # if the question is a single answer multiple choice
+    # question, getting it directly from
+    # the ordered recode values
+  } else if (is_mc_single_answer(question)) {
+    if (choice <= length(question[['Payload']][['RecodeValues']])) {
+      choice <- question[['Payload']][['RecodeValues']][[choice]][[1]]
+    }
+    
+    
+    
+    # if the question is a single answer matrix question,
+    # If that doesn't work, just use the original choice given.
+  } else if (is_matrix_single_answer(question)) {
+    if (choice <= length(question[['Payload']][['RecodeValues']])) {
+      choice <- question[['Payload']][['RecodeValues']][[choice]][[1]]
+    } }
+  
+  # if the answer is a side by side table option, 
+  # ADD Things here
+  
+  if (original %in% c(-99, "-99"))
+    choice <- "Seen, but Unanswered"
+  if (is.na(choice) || identical(choice, original))
+    choice <- ""
+  choice <- clean_html(choice)
+  return(choice)
+}
+
+
+
+
+
 #' A Shiny app to format Qualtrics survey data and generate reports
 #'
 #' This function launches the Shiny interface for the QualtricsTools

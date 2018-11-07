@@ -1360,6 +1360,8 @@ create_response_column_dictionary <-
         rcol <- names(question[['Responses']])[[response_column]]
         choice_text <-
           choice_text_from_response_column(rcol, original_first_row, blocks) 
+        
+        recode_value <- ""
 
         return(
           c(
@@ -1369,6 +1371,8 @@ create_response_column_dictionary <-
             names(question[['Responses']])[[response_column]],
             # Question Stem:
             question[['Payload']][['QuestionTextClean']],
+            # Recode Value:
+            recode_value,
             # Question Choice:
             choice_text,
             # Question Type 1:
@@ -1394,7 +1398,9 @@ create_response_column_dictionary <-
         }
         
         #For matrix and text questions:
-          choice_text <- choice_text_from_question(question, choice=choice_column)
+          choice_text <- choice_text_by_order(question, choice=choice_column)
+          
+          recode_value <- recode_value_by_order(question,choice=choice_column)
           
           return(
             c(
@@ -1404,6 +1410,8 @@ create_response_column_dictionary <-
               question[['Payload']][['DataExportTag']],
               # Question Stem:
               question[['Payload']][['QuestionTextClean']],
+              # Recode Value
+              recode_value,
               # Question Choice:
               choice_text,
               # Question Type 1:
@@ -1419,6 +1427,9 @@ create_response_column_dictionary <-
         }
     
 
+    #create_entry_Other <-     
+    
+    
     # create a dictionary as a list to store row-entries in.
     # for each block element, try to create an entry and add it
     # to the dictionary.
@@ -1510,11 +1521,12 @@ create_response_column_dictionary <-
     dictionary <- do.call(rbind.data.frame, dictionary)
 
     # rename the dictionary with the appropriate column names
-    if (ncol(dictionary) == 8) {
+    if (ncol(dictionary) == 9) {
       names(dictionary) <- c(
         "Question Data Export Tag",
         "Question Response Column",
         "Question Stem",
+        "Recode Value",
         "Question Choice",
         "Question Type 1",
         "Question Type 2",
