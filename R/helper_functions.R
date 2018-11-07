@@ -222,7 +222,7 @@ choice_text_from_question <- function(question, choice) {
 #' response columns associated with the given question, but it can also be a
 #' choice which was not chosen by any respondents in the responses dataframe
 #' as long as it is a choice built into the question's construction.
-choice_text_by_order <- function(question, choice) {
+choice_text_by_order <- function(question, choice, subquestion=NULL) {
   original <- choice
   #choice <- as.character(choice)
   
@@ -250,10 +250,19 @@ choice_text_by_order <- function(question, choice) {
     
     # if the question is a single answer matrix question,
     # If that doesn't work, just use the original choice given.
-  } else if (is_matrix_single_answer(question)) {
-    if (choice <= length(question[['Payload']][['Choices']])) {
-      choice <- question[['Payload']][['Choices']][[choice]][[1]]
-  } }
+  } else if (is_matrix_single_answer(question) && 
+             question[['Payload']][['Selector']] != "Profile") {
+    if (choice <= length(question[['Payload']][['Answers']])) {
+      choice <- question[['Payload']][['Answers']][[choice]][[1]]
+    } 
+  
+ } else if (is_matrix_single_answer(question) && 
+            question[['Payload']][['Selector']] == "Profile" &&
+            !is.null(subquestion)) {
+   if (choice <= length(question[['Payload']][['Answers']][[subquestion]])) {
+     choice <- question[['Payload']][['Answers']][[subquestion]][[choice]][[1]]
+   } 
+ }
   
   # if the answer is a side by side table option, 
   # ADD Things here

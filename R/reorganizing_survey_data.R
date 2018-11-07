@@ -1427,7 +1427,55 @@ create_response_column_dictionary <-
         }
     
 
-    #create_entry_Other <-     
+    create_entry_matrix <-
+      function(question, 
+               response_column,
+               choice_column,
+               original_first_row) {
+        # make sure that the subselector either exists or is set to "", so that
+        # including it in an entry doesn't error
+        if (!("SubSelector" %in% names(question[['Payload']]))) {
+          question[['Payload']][['SubSelector']] <- ""
+        }
+        
+        #For matrix and text questions:
+        
+        recode_value <- recode_value_by_order(question,choice=choice_column)
+        
+        question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], 
+                                         question[['Payload']][['Choices']][[q]][[1]])
+        
+        if (question[['Payload']][['Selector']] != "Profile") {
+          choice_text <- choice_text_by_order(question, choice=choice_column)
+        } else {
+          choice_text <- choice_text_by_order(question, choice=choice_column, subquestion=response_column)
+        }
+      
+        
+        
+        return(
+          c(
+            # Question Data Export Tag:
+            question[['Payload']][['DataExportTag']],
+            # Question Data Export Tag repeated (Response Column):
+            question[['Payload']][['DataExportTag']],
+            # Question Stem:
+            question_text_specifics,
+            # Recode Value
+            recode_value,
+            # Question Choice:
+            choice_text,
+            # Question Type 1:
+            question[['Payload']][['QuestionType']],
+            # Question Type 2:
+            question[['Payload']][['Selector']],
+            # Question Type 3:
+            question[['Payload']][['SubSelector']],
+            # Response Type:
+            question[['Payload']][['QuestionTypeHuman']]
+          )
+        )
+      }
     
     
     # create a dictionary as a list to store row-entries in.
@@ -1439,6 +1487,92 @@ create_response_column_dictionary <-
     for (b in block_ordering) {
       if ('BlockElements' %in% names(blocks[[b]])) {
         for (be in 1:length(blocks[[b]][['BlockElements']])) {
+          #separate out matrix tables; profile have nested answers
+          if (blocks[[b]][['BlockElements']][[be]][['Payload']][['QuestionType']] == "Matrix" && 
+              "Responses" %in% names(blocks[[b]][['BlockElements']][[be]]) &&
+              blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile") {
+            coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
+            choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']])
+            #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
+            if (coln > 0 & choicen > 0) {
+              for (q in 1:coln) {
+                for (c in 1:choicen) {
+                # if a block element has responses,
+                # for each response column increment the dictionary index e once,
+                # and try to add to the dictionary the entry for that
+                # response column. If creating the entry fails, return to the
+                # console a message saying so.
+                e <- e + 1
+                dictionary[[e]] <-
+                  tryCatch(
+                    create_entry_matrix(
+                      question = blocks[[b]][['BlockElements']][[be]],
+                      response_column = q,
+                      choice_column = c,
+                      original_first_row = original_first_row
+                    ),
+                    error = function(e) {
+                      cat(
+                        paste0(
+                          "\nCreating an entry for the following question failed. \nDataExportTag: "
+                          ,
+                          blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
+                          ,
+                          "\nResponse Column: "
+                          ,
+                          c
+                        )
+                      )
+                      return(NULL)
+                    }
+                  )
+                } 
+                }
+            }
+          }
+          if (blocks[[b]][['BlockElements']][[be]][['Payload']][['QuestionType']] == "Matrix" && 
+              "Responses" %in% names(blocks[[b]][['BlockElements']][[be]]) &&
+              blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] == "Profile") {
+            coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
+            #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
+            if (coln > 0) {
+              for (q in 1:coln) {
+                choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']][[q]])
+                for (c in 1:choicen) {
+                  # if a block element has responses,
+                  # for each response column increment the dictionary index e once,
+                  # and try to add to the dictionary the entry for that
+                  # response column. If creating the entry fails, return to the
+                  # console a message saying so.
+                  e <- e + 1
+                  dictionary[[e]] <-
+                    tryCatch(
+                      create_entry_matrix(
+                        question = blocks[[b]][['BlockElements']][[be]],
+                        response_column = q,
+                        choice_column = c,
+                        original_first_row = original_first_row
+                      ),
+                      error = function(e) {
+                        cat(
+                          paste0(
+                            "\nCreating an entry for the following question failed. \nDataExportTag: "
+                            ,
+                            blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
+                            ,
+                            "\nResponse Column: "
+                            ,
+                            c
+                          )
+                        )
+                        return(NULL)
+                      }
+                    )
+                } 
+              }
+            }
+          }
+          else{
           if ("Choices" %in% names(blocks[[b]][['BlockElements']][[be]][['Payload']]) &&
               !is.null(blocks[[b]][['BlockElements']][[be]][['Payload']][['Choices']])) {
             choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Choices']])
@@ -1513,6 +1647,7 @@ create_response_column_dictionary <-
               }
             }
           } 
+          }
         }
       }
     }
