@@ -292,7 +292,7 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
 #' as long as it is a choice built into the question's construction.
 recode_value_by_order <- function(question, choice) {
   original <- choice
-  choice <- as.character(choice)
+  #choice <- as.character(choice)
   
   # if the question is a multiple answer question,
   # meaning some form of "check all that apply",
@@ -328,7 +328,7 @@ recode_value_by_order <- function(question, choice) {
   
   if (original %in% c(-99, "-99"))
     choice <- "Seen, but Unanswered"
-  if (is.na(choice) || identical(choice, original))
+  if (is.na(choice))
     choice <- ""
   choice <- clean_html(choice)
   return(choice)
