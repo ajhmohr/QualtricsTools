@@ -1449,9 +1449,9 @@ create_response_column_dictionary <-
         return(
           c(
             # Question Data Export Tag:
-            exporttag_option,
-            # Question Data Export Tag repeated (Response Column):
             question[['Payload']][['DataExportTag']],
+            # Question Data Export Tag repeated (Response Column):
+            exporttag_option,
             # Question Stem:
             question_stem_ma,
             # Recode Value
