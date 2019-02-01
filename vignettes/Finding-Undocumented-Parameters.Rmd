@@ -29,7 +29,6 @@ https://stackoverflow.com/questions/5103194/get-the-list-of-functions-loaded-in-
 http://roxygen.org/roxygen2-manual.pdf)
 
 ```{r}
-setwd("Q:/Student Work/Emma's Student Work/Report Generation/QualtricsTools/")
 devtools::load_all(".")
 library(tools)
 

@@ -44,7 +44,7 @@ Inevitably slow or bad code needs to be refactored. Refactoring is hard most sim
 
 My answer to the problem of understanding function dependencies is to use functions like [`mvbutils::foodweb`](https://blogisticreflections.wordpress.com/2010/09/21/r-function-of-the-day-foodweb/) and the [`datastorm-open/DependenciesGraph`](https://github.com/datastorm-open/DependenciesGraphs) project. I strongly prefer using the DependenciesGraph package over the mvbutils package because it clearly represents the direction of dependencies and graphs it creates using [visNetwork](http://datastorm-open.github.io/visNetwork/) are much more reader-friendly because their text is never obfuscated by the node's shape, the graph is draggable and zoomable, and using a combination of force-directed layout and directed edges makes function's dependencies literally easier to see. A note to keep in mind is that the DependenciesGraph represents a dependency of a function as an arrow pointed away from the dependent function to the dependency. 
 
-```{r}
+```{r, eval=FALSE}
 library(QualtricsTools)
 library(DependenciesGraphs)
 deps <- envirDependencies("package:QualtricsTools")
