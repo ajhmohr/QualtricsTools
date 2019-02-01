@@ -1961,11 +1961,6 @@ create_surveyflow_dictionary <-
     survey_flow <- survey[['SurveyElements']][[grep("Flow", (unlist(lapply(survey[['SurveyElements']], function(x){x[['PrimaryAttribute']]}))))]]
     survey_flow1 <- survey_flow[['Payload']][['Flow']]
     
-    #testing
-    survey_flowKruger <- survey_flow[['Payload']][['Flow']]
-    survey_flowMcGue <- survey_flow[['Payload']][['Flow']]
-    survey_flow1 <- survey_flowMcGue
-    
     #extract block information from survey list
     blocks_list <- survey[['SurveyElements']][[grep("Blocks", (unlist(lapply(survey[[2]], function(x){x[['PrimaryAttribute']]}))))]]
     
