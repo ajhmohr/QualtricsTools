@@ -1939,4 +1939,168 @@ create_merged_response_column <- function(response_columns,
   rownames(responses) <- orig_rownames
 
   return(responses)
+}
+
+#' Create a Survey Flow Dictionary
+#'
+#' Extracts the survey flow and skip logic for each block and question into a dataframe
+#' with one row per question and columns denoting the block, question ID and export tag,
+#' and any skip logic associated with the questions. 
+#'
+#' @param survey This is automatically provided to you when you use get_set().
+#' @return a dataframe detailing in each row the block and question order.
+create_surveyflow_dictionary <-
+  function(survey_list) {
+    if (missing(survey_list)) {
+      survey <- get("survey", envir = 1)
+    } else {
+      survey <- survey_list
+    }
+    
+    #extract survey flow from survey list
+    survey_flow <- survey[['SurveyElements']][[grep("Flow", (unlist(lapply(survey[['SurveyElements']], function(x){x[['PrimaryAttribute']]}))))]]
+    survey_flow1 <- survey_flow[['Payload']][['Flow']]
+    
+    #testing
+    survey_flowKruger <- survey_flow[['Payload']][['Flow']]
+    survey_flowMcGue <- survey_flow[['Payload']][['Flow']]
+    survey_flow1 <- survey_flowMcGue
+    
+    #extract block information from survey list
+    blocks_list <- survey[['SurveyElements']][[grep("Blocks", (unlist(lapply(survey[[2]], function(x){x[['PrimaryAttribute']]}))))]]
+    
+    
+    #function to extract flow entry
+    create_flow_entry <- function(flowitem) {
+      
+      blocktype <- flowitem[['Type']]
+      
+      if ("ID" %in% names(flowitem)){
+        ID <- flowitem[['ID']]
+      } else{ ID <- flowitem[['FlowID']]
+      }
+      
+      if ("EmbeddedData" %in% names(flowitem)){
+        embeddeddata <- paste(unlist(lapply(flowitem[['EmbeddedData']], function(x){x[['Field']]})), collapse=";")
+      } else{ embeddeddata <- ""}
+      
+      if ("BranchLogic" %in% names(flowitem)){
+        #returns the description anywhere in Branch logic list
+        branchlogic <- clean_html(unlist(flowitem[['BranchLogic']][['0']])[grep("Description", names(unlist(flowitem[['BranchLogic']][['0']])))])
+        branchtotype <- unlist(flowitem[['Flow']])[grep("^Type", names(unlist(flowitem[['Flow']])))]
+        branchtoflowid <- unlist(flowitem[['Flow']])[grep("FlowID", names(unlist(flowitem[['Flow']])))]
+      } else{ branchlogic <- ""
+      branchtotype <- ""
+      branchtoflowid <- ""
+      }
+      currentlinedata <- cbind(blocktype, ID, embeddeddata, branchlogic, branchtotype, branchtoflowid)
+      return(currentlinedata)
+    }
+    
+    
+    create_block_entry <- function(current, 
+                                   blocklist) {
+      #skip trash blocks
+      if (blocks_list[['Payload']][[i]][['Type']] != "Trash") {
+        
+        desc_info <- data.frame('Type' = blocks_list[['Payload']][[i]][['Type']], 
+                                'Block'=blocks_list[['Payload']][[i]][['Description']],
+                                'ID'=blocks_list[['Payload']][[i]][['ID']], 
+                                'RandomizeQuestions' = 
+                                  ifelse(!is.null(blocks_list[['Payload']][[i]][['Options']][['RandomizeQuestions']]), 
+                                         blocks_list[['Payload']][[i]][['Options']][['RandomizeQuestions']], ""))
+        
+        if (length(blocks_list[['Payload']][[i]][['BlockElements']]) > 0) {
+          block_info <- data.frame()
+          
+          for (b in 1:length(blocks_list[['Payload']][[i]][['BlockElements']])){
+            suppressWarnings(block_info <- dplyr::bind_rows(block_info, data.frame(t(as.matrix(unlist(blocks_list[['Payload']][[i]][['BlockElements']][[b]]))))))
+            block_info$questionorder <- 1:nrow(block_info)
+          }
+        } else {
+          block_info <- data.frame()
+        }
+        currentblockdata <- cbind(as.matrix(desc_info), block_info)
+      } else {
+        currentblockdata <- data.frame()
+      } 
+      return(currentblockdata)
+    }
+    
+    
+    
+    #pull out each part of survey flow
+    #If there is at least one block:
+    if (length(survey_flow1) > 0){
+      combinedflow <- data.frame()
+      
+      for (j in 1:length(survey_flow1)) {
+        
+        #If the block has a flow element
+        if (length(survey_flow1[[j]][['Flow']]) > 0) {
+          
+          for (i in 1:length(survey_flow1[[j]][['Flow']])) {
+            #current <- i
+            flowitem <- survey_flow1[[j]][['Flow']][[i]]
+            combinedflow <- rbind(combinedflow, create_flow_entry(flowitem))
+          }
+        } else {
+          flowitem <- survey_flow1[[j]]
+          combinedflow <- rbind(combinedflow, create_flow_entry(flowitem))
+        }
+      } 
+    } else{
+      combinedflow <- data.frame()}
+    
+    #add block order to combined flow
+    combinedflow$blockorder <- 1:nrow(combinedflow)
+    
+    
+    #Pull out blocks and question order
+    #warnings happen with dplyr function... 
+    if (length(blocks_list[['Payload']]) > 0) {
+      combinedblockinfo <- data.frame()
+      for (i in 1:length(blocks_list[['Payload']])){
+        current <- i
+        
+        suppressWarnings(combinedblockinfo <- dplyr::bind_rows(combinedblockinfo, create_block_entry(current, blocks_list)))
+      }
+    } else {
+      combinedblockinfo <- data.frame()
+    }
+    
+    
+    
+    #if both flow and block information are present:
+    if (nrow(combinedflow) > 0 && nrow(combinedblockinfo) > 0) {
+      combinedblockflow <- merge(combinedflow, combinedblockinfo, by="ID", all=T)
+      
+      #add question name instead of question ID
+      combinedblockflow$ExportTag <- ""
+      for (i in 1:nrow(combinedblockflow)) {
+        if (length(find_question_index_by_qid(questions, combinedblockflow$QuestionID[i]) > 0)) {
+          combinedblockflow$ExportTag[i] <-   questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['DataExportTag']]
+        } else {
+          combinedblockflow$ExportTag[i] <- NA
+        }
+      }
+      
+      #arrange survey flow spreadsheet
+      varnamestoinclude <- c("blockorder", "Block", "Type", "blocktype", "questionorder", "QuestionID", "ExportTag", "RandomizeQuestions", "embeddeddata", grep("branch", names(combinedblockflow), value = T), grep("SkipLogic\\.Description", names(combinedblockflow), value = T))
+      combinedblockflow1 <- subset(combinedblockflow, select=c(varnamestoinclude, names(combinedblockflow)[which(names(combinedblockflow) %in% varnamestoinclude == FALSE)]))
+      
+      suppressWarnings(combinedblockflow2 <- dplyr::arrange(combinedblockflow1, blockorder, questionorder))
+    } else {
+      if (nrow(combinedflow) > 0) {
+        combinedblockflow2 <- combinedflow
+      } else {
+        if (nrow(combinedblockinfo) > 0) {
+          combinedblockflow2 <- combinedblockinfo
+        } else{
+          combinedblockflow2 <- data.frame()
+        }
+      }
+    }
+    
+    return(combinedblockflow2)
   }
