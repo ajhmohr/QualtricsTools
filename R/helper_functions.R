@@ -259,8 +259,11 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
  } else if (is_matrix_single_answer(question) && 
             question[['Payload']][['Selector']] == "Profile" &&
             !is.null(subquestion)) {
-   if (choice <= length(question[['Payload']][['Answers']][[subquestion]])) {
-     choice <- question[['Payload']][['Answers']][[subquestion]][[choice]][[1]]
+   #get name of subquestion in case order is switched (assume export tags are correctly ordered)
+   subqname <- names(question[['Payload']][["ChoiceDataExportTags"]])[subquestion]
+   
+   if (choice <= length(question[['Payload']][['Answers']][[subqname]])) {
+     choice <- question[['Payload']][['Answers']][[subqname]][[choice]][[1]]
    } 
  }
   
