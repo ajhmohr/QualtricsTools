@@ -1489,7 +1489,14 @@ create_response_column_dictionary <-
         question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], 
                                          question[['Payload']][['Choices']][[q]][[1]])
         
-        export_tag <- question[['Payload']][['ChoiceDataExportTags']][[response_column]]
+       if (!question[['Payload']][['ChoiceDataExportTags']][[response_column]]==FALSE) {
+         export_tag <- question[['Payload']][['ChoiceDataExportTags']][[response_column]]
+       } else {
+         if (response_column <= length(names(question[['Responses']]))) {
+           export_tag <- names(question[['Responses']])[[response_column]]}
+         else {
+           export_tag <- question[['Payload']][['DataExportTag']]
+        }}
         
         if (question[['Payload']][['Selector']] != "Profile") {
           choice_text <- choice_text_by_order(question, choice=choice_column)
@@ -1528,97 +1535,99 @@ create_response_column_dictionary <-
     # create a dictionary as a list to store row-entries in.
     # for each block element, try to create an entry and add it
     # to the dictionary.
-    # TODO: does this fail well?
+    #TODO: Check how things are falling into multiple categories (Matrix MC) 
     dictionary <- list()
     e <- 0
     for (b in block_ordering) {
       if ('BlockElements' %in% names(blocks[[b]])) {
         for (be in 1:length(blocks[[b]][['BlockElements']])) {
           #separate out matrix tables; profile have nested answers
-          if (blocks[[b]][['BlockElements']][[be]][['Payload']][['QuestionType']] == "Matrix" && 
-              "Responses" %in% names(blocks[[b]][['BlockElements']][[be]]) &&
-              blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile") {
-            coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
-            choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']])
-            #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
-            if (coln > 0 & choicen > 0) {
-              for (q in 1:coln) {
-                for (c in 1:choicen) {
-                # if a block element has responses,
-                # for each response column increment the dictionary index e once,
-                # and try to add to the dictionary the entry for that
-                # response column. If creating the entry fails, return to the
-                # console a message saying so.
-                e <- e + 1
-                dictionary[[e]] <-
-                  tryCatch(
-                    create_entry_matrix(
-                      question = blocks[[b]][['BlockElements']][[be]],
-                      response_column = q,
-                      choice_column = c,
-                      original_first_row = original_first_row
-                    ),
-                    error = function(e) {
-                      cat(
-                        paste0(
-                          "\nCreating an entry for the following question failed. \nDataExportTag: "
-                          ,
-                          blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
-                          ,
-                          "\nResponse Column: "
-                          ,
-                          c
-                        )
-                      )
-                      return(NULL)
-                    }
-                  )
-                } 
-                }
-            }
-          }
-          if (blocks[[b]][['BlockElements']][[be]][['Payload']][['QuestionType']] == "Matrix" && 
-              "Responses" %in% names(blocks[[b]][['BlockElements']][[be]]) &&
-              blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] == "Profile") {
-            coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
-            #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
-            if (coln > 0) {
-              for (q in 1:coln) {
-                choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']][[q]])
-                for (c in 1:choicen) {
-                  # if a block element has responses,
-                  # for each response column increment the dictionary index e once,
-                  # and try to add to the dictionary the entry for that
-                  # response column. If creating the entry fails, return to the
-                  # console a message saying so.
-                  e <- e + 1
-                  dictionary[[e]] <-
-                    tryCatch(
-                      create_entry_matrix(
-                        question = blocks[[b]][['BlockElements']][[be]],
-                        response_column = q,
-                        choice_column = c,
-                        original_first_row = original_first_row
-                      ),
-                      error = function(e) {
-                        cat(
-                          paste0(
-                            "\nCreating an entry for the following question failed. \nDataExportTag: "
-                            ,
-                            blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
-                            ,
-                            "\nResponse Column: "
-                            ,
-                            c
+          if (blocks[[b]][['BlockElements']][[be]][['Payload']][['QuestionType']] == "Matrix" &&
+              "Responses" %in% names(blocks[[b]][['BlockElements']][[be]])) {
+            
+            #matrix tables that are NOT profile type
+            if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile") {
+              coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
+              choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']])
+              #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
+              if (coln > 0 & choicen > 0) {
+                for (q in 1:coln) {
+                  for (c in 1:choicen) {
+                    # if a block element has responses,
+                    # for each response column increment the dictionary index e once,
+                    # and try to add to the dictionary the entry for that
+                    # response column. If creating the entry fails, return to the
+                    # console a message saying so.
+                    e <- e + 1
+                    dictionary[[e]] <-
+                      tryCatch(
+                        create_entry_matrix(
+                          question = blocks[[b]][['BlockElements']][[be]],
+                          response_column = q,
+                          choice_column = c,
+                          original_first_row = original_first_row
+                        ),
+                        error = function(e) {
+                          cat(
+                            paste0(
+                              "\nCreating an entry for the following question failed. \nDataExportTag: "
+                              ,
+                              blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
+                              ,
+                              "\nResponse Column: "
+                              ,
+                              c
+                            )
                           )
-                        )
-                        return(NULL)
-                      }
-                    )
-                } 
+                          return(NULL)
+                        }
+                      )
+                  } 
+                }
+              }
+            }
+            if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] == "Profile") {
+              coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
+              #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
+              if (coln > 0) {
+                for (q in 1:coln) {
+                  choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']][[q]])
+                  for (c in 1:choicen) {
+                    # if a block element has responses,
+                    # for each response column increment the dictionary index e once,
+                    # and try to add to the dictionary the entry for that
+                    # response column. If creating the entry fails, return to the
+                    # console a message saying so.
+                    e <- e + 1
+                    dictionary[[e]] <-
+                      tryCatch(
+                        create_entry_matrix(
+                          question = blocks[[b]][['BlockElements']][[be]],
+                          response_column = q,
+                          choice_column = c,
+                          original_first_row = original_first_row
+                        ),
+                        error = function(e) {
+                          cat(
+                            paste0(
+                              "\nCreating an entry for the following question failed. \nDataExportTag: "
+                              ,
+                              blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
+                              ,
+                              "\nResponse Column: "
+                              ,
+                              c
+                            )
+                          )
+                          return(NULL)
+                        }
+                      )
+                  } 
+                }
               }
             }
           }
+          
           else{
             #single option MC questions
             if ("Choices" %in% names(blocks[[b]][['BlockElements']][[be]][['Payload']]) &&
