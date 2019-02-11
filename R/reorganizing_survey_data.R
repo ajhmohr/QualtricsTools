@@ -1490,14 +1490,14 @@ create_response_column_dictionary <-
         #if response column var name is in choices, 
         if (names(question[['Responses']])[response_column] %in% question[['Payload']][['ChoiceDataExportTags']]) {
           specific_text <- question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==names(question[['Responses']])[response_column])]][[1]]
-        } else{
+        } else {
           #if it's a text question, use one without text
           if (gsub("_TEXT", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]) {
             specific_text <- question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_TEXT", "", names(question[['Responses']])[response_column]))]][[1]]
           } else {
             #for side by side tables
-            if (gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]){
-            specific_text <-  question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column]))]][[1]]
+            if (gsub("_[[:digit:]]$|_[[:digit:]]_[[:digit:]]$", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]){
+            specific_text <-  question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_[[:digit:]]$|_[[:digit:]]_[[:digit:]]$", "", names(question[['Responses']])[response_column]))]][[1]]
             } else {
             specific_text <- ""
             }
@@ -1507,7 +1507,7 @@ create_response_column_dictionary <-
        
        
         question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], 
-                                        specific_text)ß
+                                        specific_text)
         
         #if there is a choice export tag and the number of tags 
         # match the number of responses, use that
