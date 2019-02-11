@@ -1495,7 +1495,11 @@ create_response_column_dictionary <-
           if (gsub("_TEXT", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]) {
             specific_text <- question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_TEXT", "", names(question[['Responses']])[response_column]))]][[1]]
           } else {
-            specific_text = ""
+            #for side by side tables
+            if (gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]){
+            specific_text <-  question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column]))]][[1]]
+            } else {
+            specific_text <- ""
           }
         }
           
