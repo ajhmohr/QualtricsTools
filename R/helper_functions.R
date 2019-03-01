@@ -262,6 +262,10 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
    #get name of subquestion in case order is switched (assume export tags are correctly ordered)
    qname <- names(question[['Responses']])[subquestion]
    subqname <- names(question[['Payload']][["ChoiceDataExportTags"]])[which(question[['Payload']][["ChoiceDataExportTags"]]==qname)]
+   #use order from Choices instead of ChoiceDataExportTags if subqname is null
+   if (is.null(subqname)) {
+     subqname <- names(question[['Payload']][['Choices']])[subquestion]
+   }
    
    if (choice <= length(question[['Payload']][['Answers']][[subqname]])) {
      choice <- question[['Payload']][['Answers']][[subqname]][[choice]][[1]]
