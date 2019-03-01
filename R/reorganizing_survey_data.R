@@ -1500,7 +1500,7 @@ create_response_column_dictionary <-
             specific_text <-  question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_[[:digit:]]$|_[[:digit:]]_[[:digit:]]$", "", names(question[['Responses']])[response_column]))]][[1]]
             } else {
               #if there are the same number of response names as display choices AND the response is less than that
-              if (length(names(question[['Responses']]))==length(question[['Payload']][['Choices']]) && response_column < length(names(question[['Responses']]))) {
+              if (length(names(question[['Responses']]))==length(question[['Payload']][['Choices']]) && response_column <= length(names(question[['Responses']]))) {
                 specific_text <- question[['Payload']][['Choices']][[response_column]][[1]]
               } else {
                 specific_text <- ""
