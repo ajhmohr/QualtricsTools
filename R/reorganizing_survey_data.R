@@ -1055,8 +1055,8 @@ display_logic_from_question <- function(question) {
   # Determining the first and second indices within the DisplayLogic is the goal
   # of the operations used to define the dl_indices_1 and dl_indices_2.
   if ("DisplayLogic" %in% names(question[['Payload']])) {
-    display_logic[[e]] <- "Question Display Logic:"
-    e <- e + 1
+    # display_logic[[e]] <- "Question Display Logic:"
+    # e <- e + 1
     dl_indices_1 <-
       suppressWarnings(which(!is.na(as.numeric(
         names(question[['Payload']][['DisplayLogic']])
@@ -1070,6 +1070,29 @@ display_logic_from_question <- function(question) {
         if ("Description" %in% names(question[['Payload']][['DisplayLogic']][[i]][[j]])) {
           display_logic[[e]] <-
             clean_html(question[['Payload']][['DisplayLogic']][[i]][[j]][['Description']])
+          e <- e + 1
+        }
+      }
+    }
+  } 
+  
+  # Update to look for InPageDisplayLogic
+  if ("InPageDisplayLogic" %in% names(question[['Payload']])) {
+    # display_logic[[e]] <- "Question Display Logic:"
+    # e <- e + 1
+    dl_indices_1 <-
+      suppressWarnings(which(!is.na(as.numeric(
+        names(question[['Payload']][['InPageDisplayLogic']])
+      ))))
+    for (i in dl_indices_1) {
+      dl_indices_2 <-
+        suppressWarnings(which(!is.na(as.numeric(
+          names(question[['Payload']][['InPageDisplayLogic']][[i]])
+        ))))
+      for (j in dl_indices_2) {
+        if ("Description" %in% names(question[['Payload']][['InPageDisplayLogic']][[i]][[j]])) {
+          display_logic[[e]] <-
+            clean_html(question[['Payload']][['InPageDisplayLogic']][[i]][[j]][['Description']])
           e <- e + 1
         }
       }
@@ -2110,17 +2133,24 @@ create_surveyflow_dictionary <-
       combinedblockflow <- merge(combinedflow, combinedblockinfo, by="ID", all=T)
       
       #add question name instead of question ID
+      #add display logic - START HERE, how to capture all of it?
       combinedblockflow$ExportTag <- ""
       for (i in 1:nrow(combinedblockflow)) {
-        if (length(find_question_index_by_qid(questions, combinedblockflow$QuestionID[i]) > 0)) {
+        if (length(find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])) > 0) {
           combinedblockflow$ExportTag[i] <-   questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['DataExportTag']]
+        if (length(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['InPageDisplayLogic']])>0) {
+          displaylogictext<- unlist(display_logic_from_question(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]]))
+          combinedblockflow[i,paste0("Display.Logic.", 1:length(displaylogictext))] <- displaylogictext
+        } else {displaylogictext[[i]] <- NA}
         } else {
           combinedblockflow$ExportTag[i] <- NA
+          displaylogictext[[i]] <- NA 
         }
       }
       
+      
       #arrange survey flow spreadsheet
-      varnamestoinclude <- c("blockorder", "Block", "Type", "blocktype", "questionorder", "QuestionID", "ExportTag", "RandomizeQuestions", "embeddeddata", grep("branch", names(combinedblockflow), value = T), grep("SkipLogic\\.Description", names(combinedblockflow), value = T))
+      varnamestoinclude <- c("blockorder", "Block", "Type", "blocktype", "questionorder", "QuestionID", "ExportTag", "RandomizeQuestions", "embeddeddata", grep("branch", names(combinedblockflow), value = T), grep("SkipLogic\\.Description", names(combinedblockflow), value = T), grep("Display\\.Logic", names(combinedblockflow), value=T))
       combinedblockflow1 <- subset(combinedblockflow, select=c(varnamestoinclude, names(combinedblockflow)[which(names(combinedblockflow) %in% varnamestoinclude == FALSE)]))
       
       suppressWarnings(combinedblockflow2 <- dplyr::arrange(combinedblockflow1, blockorder, questionorder))
