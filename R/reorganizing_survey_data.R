@@ -2140,11 +2140,9 @@ create_surveyflow_dictionary <-
           combinedblockflow$ExportTag[i] <-   questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['DataExportTag']]
         if (length(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['InPageDisplayLogic']])>0) {
           displaylogictext<- unlist(display_logic_from_question(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]]))
-          combinedblockflow[i,paste0("Display.Logic.", 1:length(displaylogictext))] <- displaylogictext
-        } else {displaylogictext[[i]] <- NA}
+          combinedblockflow[i,paste0("Display.Logic.", 1:length(displaylogictext))] <- displaylogictext} 
         } else {
           combinedblockflow$ExportTag[i] <- NA
-          displaylogictext[[i]] <- NA 
         }
       }
       
