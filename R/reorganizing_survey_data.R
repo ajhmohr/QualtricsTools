@@ -2043,9 +2043,9 @@ create_surveyflow_dictionary <-
       
       if ("BranchLogic" %in% names(flowitem)){
         #returns the description anywhere in Branch logic list
-        branchlogic <- clean_html(unlist(flowitem[['BranchLogic']][['0']])[grep("Description", names(unlist(flowitem[['BranchLogic']][['0']])))])
-        branchtotype <- unlist(flowitem[['Flow']])[grep("^Type", names(unlist(flowitem[['Flow']])))]
-        branchtoflowid <- unlist(flowitem[['Flow']])[grep("FlowID", names(unlist(flowitem[['Flow']])))]
+        branchlogic <- paste(clean_html(unlist(flowitem[['BranchLogic']][['0']])[grep("Description", names(unlist(flowitem[['BranchLogic']][['0']])))]), collapse="; ")
+        branchtotype <- paste(unlist(flowitem[['Flow']])[grep("^Type", names(unlist(flowitem[['Flow']])))], collapse="; ")
+        branchtoflowid <- paste(unlist(flowitem[['Flow']])[grep("FlowID", names(unlist(flowitem[['Flow']])))],collapse = "; ")
       } else{ branchlogic <- ""
       branchtotype <- ""
       branchtoflowid <- ""
@@ -2140,11 +2140,9 @@ create_surveyflow_dictionary <-
           combinedblockflow$ExportTag[i] <-   questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['DataExportTag']]
         if (length(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['InPageDisplayLogic']])>0) {
           displaylogictext<- unlist(display_logic_from_question(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]]))
-          combinedblockflow[i,paste0("Display.Logic.", 1:length(displaylogictext))] <- displaylogictext
-        } else {displaylogictext[[i]] <- NA}
+          combinedblockflow[i,paste0("Display.Logic.", 1:length(displaylogictext))] <- displaylogictext} 
         } else {
           combinedblockflow$ExportTag[i] <- NA
-          displaylogictext[[i]] <- NA 
         }
       }
       
