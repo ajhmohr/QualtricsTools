@@ -2133,12 +2133,12 @@ create_surveyflow_dictionary <-
       combinedblockflow <- merge(combinedflow, combinedblockinfo, by="ID", all=T)
       
       #add question name instead of question ID
-      #add display logic - START HERE, how to capture all of it?
+      #add display logic 
       combinedblockflow$ExportTag <- ""
       for (i in 1:nrow(combinedblockflow)) {
         if (length(find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])) > 0) {
           combinedblockflow$ExportTag[i] <-   questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['DataExportTag']]
-        if (length(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['InPageDisplayLogic']])>0) {
+        if (length(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['InPageDisplayLogic']])>0 | length(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]][['Payload']][['DisplayLogic']])>0) {
           displaylogictext<- unlist(display_logic_from_question(questions[[find_question_index_by_qid(questions, combinedblockflow$QuestionID[i])]]))
           combinedblockflow[i,paste0("Display.Logic.", 1:length(displaylogictext))] <- displaylogictext} 
         } else {
