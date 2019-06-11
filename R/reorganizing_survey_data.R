@@ -1469,6 +1469,13 @@ create_response_column_dictionary <-
         
         question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" - ")
         
+        #check whether response is exclusive or not and appent to QuestionTypeHuman
+        if (question[['Payload']][["Choices"]][[c]][["ExclusiveAnswer"]] == TRUE) {
+          questiontypehuman <- paste( question[['Payload']][['QuestionTypeHuman']], "Exclusive Answer", sep = " - ")
+        } else {
+          questiontypehuman <-  question[['Payload']][['QuestionTypeHuman']]
+        }
+        
         return(
           c(
             # Question Data Export Tag:
@@ -1488,7 +1495,7 @@ create_response_column_dictionary <-
             # Question Type 3:
             question[['Payload']][['SubSelector']],
             # Response Type:
-            question[['Payload']][['QuestionTypeHuman']]
+            questiontypehuman
           )
         )
       }
@@ -1526,17 +1533,21 @@ create_response_column_dictionary <-
               if (length(names(question[['Responses']]))==length(question[['Payload']][['Choices']]) && response_column <= length(names(question[['Responses']]))) {
                 specific_text <- question[['Payload']][['Choices']][[response_column]][[1]]
               } else {
+                #if questions are multiple answer matrix tables - need to remove the last _digit and match to choices
+                if (question[["Payload"]][["SubSelector"]] == "MultipleAnswer" && gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]) {
+                  specific_text <-  question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column]))]][[1]] }
+                 else {
                 specific_text <- ""
               }
               
             }
           }
-        }
+        } }
           
        
        
         question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], 
-                                        specific_text)
+                                        specific_text, sep = "-")
         
         #if there is a choice export tag and the number of tags 
         # match the number of responses, use that
@@ -1556,6 +1567,13 @@ create_response_column_dictionary <-
           
         } else {
           choice_text <- choice_text_by_order(question, choice=choice_column, subquestion=response_column)
+        }
+        
+        #check whether response is exclusive or not and appent to QuestionTypeHuman
+        if (question[['Payload']][["Answers"]][[choice_column]][["ExclusiveAnswer"]] == TRUE) {
+          questiontypehuman <- paste( question[['Payload']][['QuestionTypeHuman']], "Exclusive Answer", sep = " - ")
+        } else {
+          questiontypehuman <-  question[['Payload']][['QuestionTypeHuman']]
         }
       
         
@@ -1579,7 +1597,7 @@ create_response_column_dictionary <-
             # Question Type 3:
             question[['Payload']][['SubSelector']],
             # Response Type:
-            question[['Payload']][['QuestionTypeHuman']]
+            questiontypehuman
           )
         )
       }
