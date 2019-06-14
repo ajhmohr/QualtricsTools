@@ -302,17 +302,25 @@ recode_value_by_order <- function(question, choice) {
   original <- choice
   #choice <- as.character(choice)
   
-  # if the question is a multiple answer question,
+  # if the question is a multiple answer question NOT a matrix,
   # meaning some form of "check all that apply",
   # then the answers are boolean valued -- either they
-  # checked it or they didn't. Return TRUE, FALSE, or
+  # checked it or they didn't. Return 1, 0, or
   # "Seen, but Unanswered" depending.
-  if (is_multiple_answer(question)) {
+  if (is_mc_multiple_answer(question)) {
     if (choice %in% c(1, "1")) {
       choice <- 1
     } else {
       choice <- 0
     }
+    
+    # if the question is a matrix multiple answer matrix
+    # question, then return from the Recode values
+  } else if (is_matrix_multiple_answer(question)) {
+    if (choice <= length(question[['Payload']][['RecodeValues']])) {
+      choice <- question[['Payload']][['RecodeValues']][[choice]][[1]]
+    }
+  
     
     # if the question is a single answer multiple choice
     # question, getting it directly from

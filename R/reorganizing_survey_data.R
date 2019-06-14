@@ -1470,11 +1470,13 @@ create_response_column_dictionary <-
         question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" - ")
         
         #check whether response is exclusive or not and appent to QuestionTypeHuman
-        if (question[['Payload']][["Choices"]][[c]][["ExclusiveAnswer"]] == TRUE) {
+        if ("ExculsiveAnswser" %in% names(question[['Payload']][["Answers"]][[choice_value]]) &&
+            question[['Payload']][["Answers"]][[choice_value]][["ExclusiveAnswer"]] == TRUE) {
           questiontypehuman <- paste( question[['Payload']][['QuestionTypeHuman']], "Exclusive Answer", sep = " - ")
         } else {
           questiontypehuman <-  question[['Payload']][['QuestionTypeHuman']]
         }
+        
         
         return(
           c(
@@ -1569,13 +1571,110 @@ create_response_column_dictionary <-
           choice_text <- choice_text_by_order(question, choice=choice_column, subquestion=response_column)
         }
         
+        return(
+          c(
+            # Question Data Export Tag:
+            question[['Payload']][['DataExportTag']],
+            # Question Data Export Tag repeated (Response Column):
+            export_tag,
+            # Question Stem:
+            question_text_specifics,
+            # Recode Value
+            recode_value,
+            # Question Choice:
+            choice_text,
+            # Question Type 1:
+            question[['Payload']][['QuestionType']],
+            # Question Type 2:
+            question[['Payload']][['Selector']],
+            # Question Type 3:
+            question[['Payload']][['SubSelector']],
+            # Response Type:
+            question[['Payload']][['QuestionTypeHuman']]
+          )
+        )
+      }
+    
+    
+    
+    create_entry_matrix_MA <-
+      function(question, 
+               response_column) {
+        # make sure that the subselector either exists or is set to "", so that
+        # including it in an entry doesn't error
+        if (!("SubSelector" %in% names(question[['Payload']]))) {
+          question[['Payload']][['SubSelector']] <- ""
+        }
+        
+        #For matrix and text questions:
+        choice_export_tag <- gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column])
+        choice_column <- gsub(paste0(choice_export_tag, "_"), "", names(question[['Responses']])[response_column])
+        
+        recode_value <- 1
+        
+        choice_value <- recode_value_by_order(question, choice=choice_column)
+        
+        #handling errors when response column is out of bounds (text followups)
+        #if response column var name is in choices, 
+        if (choice_export_tag %in% question[['Payload']][['ChoiceDataExportTags']]) {
+          specific_text <- question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==choice_export_tag)]][[1]]
+        } else {
+          #if it's a text question, use one without text
+          if (gsub("_TEXT", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]) {
+            specific_text <- question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_TEXT", "", names(question[['Responses']])[response_column]))]][[1]]
+          } else {
+            #for side by side tables
+            if (gsub("_[[:digit:]]$|_[[:digit:]]_[[:digit:]]$", "", names(question[['Responses']])[response_column]) %in% question[['Payload']][['ChoiceDataExportTags']]){
+              specific_text <-  question[['Payload']][['Choices']][[which(question[['Payload']][['ChoiceDataExportTags']]==gsub("_[[:digit:]]$|_[[:digit:]]_[[:digit:]]$", "", names(question[['Responses']])[response_column]))]][[1]]
+            } else {
+              #if there are the same number of response names as display choices AND the response is less than that
+              if (length(names(question[['Responses']]))==length(question[['Payload']][['Choices']]) && response_column <= length(names(question[['Responses']]))) {
+                specific_text <- question[['Payload']][['Choices']][[response_column]][[1]]
+              } else {
+                  specific_text <- ""}
+                }
+                
+              }
+            }
+        
+        #Grab answer text based on recode value
+        if (!is.null(question[['Payload']][['Answers']][[choice_value]][["Display"]])) {
+          option_text <- question[['Payload']][['Answers']][[choice_value]][["Display"]]
+        }
+        else {
+          option_text <- ""
+        }
+        
+        choice_text <- choice_text_by_order(question, choice=1)
+        
+        
+        question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], 
+                                         specific_text, option_text, sep = "-")
+        
+       
+        #if there is a choice export tag and the number of tags 
+        # match the number of responses, use that
+        if (names(question[['Responses']])[response_column] %in% question[['Payload']][['ChoiceDataExportTags']]) {
+          export_tag <- question[['Payload']][['ChoiceDataExportTags']][[which(question[['Payload']][['ChoiceDataExportTags']]==names(question[['Responses']])[response_column])]]
+        } else {
+          #otherwise, use name of response
+          if (response_column <= length(names(question[['Responses']]))) {
+            export_tag <- names(question[['Responses']])[[response_column]]}
+          else {
+            #otherwise, use export tag
+            export_tag <- question[['Payload']][['DataExportTag']]
+          }}
+        
+        
+       
         #check whether response is exclusive or not and appent to QuestionTypeHuman
-        if (question[['Payload']][["Answers"]][[choice_column]][["ExclusiveAnswer"]] == TRUE) {
+        if ("ExculsiveAnswser" %in% names(question[['Payload']][["Answers"]][[choice_value]]) &&
+          question[['Payload']][["Answers"]][[choice_value]][["ExclusiveAnswer"]] == TRUE) {
           questiontypehuman <- paste( question[['Payload']][['QuestionTypeHuman']], "Exclusive Answer", sep = " - ")
         } else {
           questiontypehuman <-  question[['Payload']][['QuestionTypeHuman']]
         }
-      
+        
         
         
         return(
@@ -1616,8 +1715,9 @@ create_response_column_dictionary <-
           if (blocks[[b]][['BlockElements']][[be]][['Payload']][['QuestionType']] == "Matrix" &&
               "Responses" %in% names(blocks[[b]][['BlockElements']][[be]])) {
             
-            #matrix tables that are NOT profile type
-            if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile") {
+            #matrix tables that are NOT profile type and NOT multi-response
+            if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile" &&
+                blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']] != "MultipleAnswer" ) {
               coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
               choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']])
               #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
@@ -1657,6 +1757,48 @@ create_response_column_dictionary <-
                 }
               }
             }
+            
+            ##matrix tables that are NOT profile type and ARE multi-response
+            if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile" &&
+                blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']] == "MultipleAnswer" ) { 
+              #in MA, columns will represent every response option
+              coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
+              #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
+              if (coln > 0 & choicen > 0) {
+                for (q in 1:coln) {
+                
+                    # if a block element has responses,
+                    # for each response column increment the dictionary index e once,
+                    # and try to add to the dictionary the entry for that
+                    # response column. If creating the entry fails, return to the
+                    # console a message saying so.
+                    e <- e + 1
+                    dictionary[[e]] <-
+                      tryCatch(
+                        create_entry_matrix_MA(
+                          question = blocks[[b]][['BlockElements']][[be]],
+                          response_column = q
+                        ),
+                        error = function(e) {
+                          cat(
+                            paste0(
+                              "\nCreating an entry for the following question failed. \nDataExportTag: "
+                              ,
+                              blocks[[b]][['BlockElements']][[be]][['Payload']][['DataExportTag']]
+                              ,
+                              "\nResponse Column: "
+                              ,
+                              c
+                            )
+                          )
+                          return(NULL)
+                        }
+                      )
+                  
+                }
+              }
+            }
+            
             if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] == "Profile") {
               coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
               #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
