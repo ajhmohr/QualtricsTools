@@ -1470,8 +1470,8 @@ create_response_column_dictionary <-
         question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" - ")
         
         #check whether response is exclusive or not and appent to QuestionTypeHuman
-        if ("ExculsiveAnswser" %in% names(question[['Payload']][["Answers"]][[choice_value]]) &&
-            question[['Payload']][["Answers"]][[choice_value]][["ExclusiveAnswer"]] == TRUE) {
+        if ("ExculsiveAnswser" %in% names(question[['Payload']][["Answers"]][[choice_column]]) &&
+            question[['Payload']][["Answers"]][[choice_column]][["ExclusiveAnswer"]] == TRUE) {
           questiontypehuman <- paste( question[['Payload']][['QuestionTypeHuman']], "Exclusive Answer", sep = " - ")
         } else {
           questiontypehuman <-  question[['Payload']][['QuestionTypeHuman']]
