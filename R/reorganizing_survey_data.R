@@ -1470,8 +1470,8 @@ create_response_column_dictionary <-
         question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" - ")
         
         #check whether response is exclusive or not and appent to QuestionTypeHuman
-        if ("ExculsiveAnswser" %in% names(question[['Payload']][["Answers"]][[choice_value]]) &&
-            question[['Payload']][["Answers"]][[choice_value]][["ExclusiveAnswer"]] == TRUE) {
+        if ("ExculsiveAnswser" %in% names(question[['Payload']][["Answers"]][[choice_column]]) &&
+            question[['Payload']][["Answers"]][[choice_column]][["ExclusiveAnswer"]] == TRUE) {
           questiontypehuman <- paste( question[['Payload']][['QuestionTypeHuman']], "Exclusive Answer", sep = " - ")
         } else {
           questiontypehuman <-  question[['Payload']][['QuestionTypeHuman']]
@@ -1717,7 +1717,8 @@ create_response_column_dictionary <-
             
             #matrix tables that are NOT profile type and NOT multi-response
             if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile" &&
-                blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']] != "MultipleAnswer" ) {
+                (is.null(blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']]) ||
+                 blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']] != "MultipleAnswer" )) {
               coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
               choicen <- length(blocks[[b]][['BlockElements']][[be]][['Payload']][['Answers']])
               #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
@@ -1760,6 +1761,7 @@ create_response_column_dictionary <-
             
             ##matrix tables that are NOT profile type and ARE multi-response
             if (blocks[[b]][['BlockElements']][[be]][['Payload']][['Selector']] != "Profile" &&
+                !is.null(blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']]) &&
                 blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']] == "MultipleAnswer" ) { 
               #in MA, columns will represent every response option
               coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
