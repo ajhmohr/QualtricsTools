@@ -270,6 +270,13 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
    if (choice <= length(question[['Payload']][['Answers']][[subqname]])) {
      choice <- question[['Payload']][['Answers']][[subqname]][[choice]][[1]]
    } 
+ 
+   
+ } else if (is_matrix_question(question) && 
+            question[['Payload']][['Selector']] == "TE"&&
+            !is.null(subquestion)) {
+   if (subquestion <= length(question[['Payload']][['Answers']])) {
+     choice <- question[['Payload']][['Answers']][[subquestion]][['Display']][[1]]}
  }
   
   # if the answer is a side by side table option, 
