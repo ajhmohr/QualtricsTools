@@ -1633,9 +1633,15 @@ create_response_column_dictionary <-
         namequest_column <- names(question[['Payload']][['ChoiceDataExportTags']])[which(question[['Payload']][['ChoiceDataExportTags']]==paste(question[['Payload']][['DataExportTag']], question_column, sep="_"))]
         
         ## Set specific text - this will be the choice that corresponds to the response column 
-        if (question_column <= length(question[['Payload']][['Choices']])) {
+        if (question_column <= length(question[['Payload']][['Choices']]) &&
+            length(namequest_column) > 0 &&
+            namequest_column %in% names(question[['Payload']][['Choices']])) {
           specific_text <- question[['Payload']][['Choices']][[which(names(question[['Payload']][['Choices']]) == namequest_column)]][['Display']][1]
-        } else {
+        #then take choice text that corresponds to order
+        } else if (length(names(question[['Responses']])) == length(names(question[['Payload']][['Choices']]))) {
+            specific_text <- question[['Payload']][['Choices']][[question_column]][['Display']][1]
+          }
+        else {
           specific_text <- ""
         }
         
@@ -1648,10 +1654,17 @@ create_response_column_dictionary <-
         if (paste(question[['Payload']][['DataExportTag']], question_column, choice_column, sep="_") %in% names(question[['Responses']])) {
           export_tag <- paste(question[['Payload']][['DataExportTag']], question_column, choice_column, sep="_")
           
+          #otherwise, use name of response
+        } else if (question_column <= length(names(question[['Responses']]))) {
+          export_tag <- names(question[['Responses']])[[question_column]] 
+        
         } else {
           #otherwise, use export tag
           export_tag <- question[['Payload']][['DataExportTag']]
         }
+        
+
+         
         
         
         ## Choice text
@@ -1700,7 +1713,7 @@ create_response_column_dictionary <-
         
         recode_value <- 1
         
-        choice_value <- recode_value_by_order(question, choice=choice_column)
+        #choice_value <- recode_value_by_order(question, choice=choice_column)
         
         #handling errors when response column is out of bounds (text followups)
         #if response column var name is in choices, 
@@ -1726,10 +1739,16 @@ create_response_column_dictionary <-
             }
         
         #Grab answer text based on recode value
-        if (!is.null(question[['Payload']][['Answers']][[choice_value]][["Display"]])) {
-          option_text <- question[['Payload']][['Answers']][[choice_value]][["Display"]]
+        #original name of recoded value
+        if (length(question[['Payload']][['RecodeValues']]) > 0) {
+          orig_value <- names(question[['Payload']][['RecodeValues']])[which(question[['Payload']][['RecodeValues']]==choice_column)]
+        } else {
+          orig_value <- choice_column
         }
-        else {
+        
+        if (!is.null(question[['Payload']][['Answers']][[orig_value]][["Display"]])) {
+          option_text <- question[['Payload']][['Answers']][[orig_value]][["Display"]]
+        } else {
           option_text <- ""
         }
         
@@ -1756,8 +1775,8 @@ create_response_column_dictionary <-
         
        
         #check whether response is exclusive or not and appent to QuestionTypeHuman
-        if ("ExculsiveAnswser" %in% names(question[['Payload']][["Answers"]][[choice_value]]) &&
-          question[['Payload']][["Answers"]][[choice_value]][["ExclusiveAnswer"]] == TRUE) {
+        if ("ExclusiveAnswer" %in% names(question[['Payload']][["Answers"]][[orig_value]]) &&
+          question[['Payload']][["Answers"]][[orig_value]][["ExclusiveAnswer"]] == TRUE) {
           questiontypehuman <- paste( question[['Payload']][['QuestionTypeHuman']], "Exclusive Answer", sep = " - ")
         } else {
           questiontypehuman <-  question[['Payload']][['QuestionTypeHuman']]
@@ -1939,7 +1958,7 @@ create_response_column_dictionary <-
               #in MA, columns will represent every response option
               coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
               #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
-              if (coln > 0 & choicen > 0) {
+              if (coln > 0) {
                 for (q in 1:coln) {
                 
                     # if a block element has responses,
