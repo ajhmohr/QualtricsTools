@@ -1467,7 +1467,7 @@ create_response_column_dictionary <-
         
         exporttag_option <- paste(question[['Payload']][['DataExportTag']], choice_column, sep="_")
         
-        question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" - ")
+        question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" | ")
         
         #check whether response is exclusive or not and appent to QuestionTypeHuman
         if ("ExclusiveAnswer" %in% names(question[['Payload']][["Answers"]][[choice_column]]) &&
@@ -1756,7 +1756,7 @@ create_response_column_dictionary <-
         
         
         question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], 
-                                         specific_text, option_text, sep = "-")
+                                         specific_text, option_text, sep = " | ")
         
        
         #if there is a choice export tag and the number of tags 
