@@ -1708,7 +1708,7 @@ create_response_column_dictionary <-
         }
         
         #For matrix and text questions:
-        choice_export_tag <- gsub("_[[:digit:]]$", "", names(question[['Responses']])[response_column])
+        choice_export_tag <- gsub("_[[:digit:]]+$", "", names(question[['Responses']])[response_column])
         choice_column <- gsub(paste0(choice_export_tag, "_"), "", names(question[['Responses']])[response_column])
         
         recode_value <- 1
