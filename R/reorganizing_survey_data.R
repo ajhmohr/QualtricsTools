@@ -1823,7 +1823,7 @@ create_response_column_dictionary <-
               "Responses" %in% names(blocks[[b]][['BlockElements']][[be]])) {
             
             #matrix tables that are constant sum/WTB
-            if (blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']] == "WTB") {
+            if (!is.null(blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']]) && blocks[[b]][['BlockElements']][[be]][['Payload']][['SubSelector']] == "WTB") {
               coln <- ncol(blocks[[b]][['BlockElements']][[be]][['Responses']])
               choicen <- 1
               #rown <- nrow(blocks[[b]][['BlockElements']][[be]][['Responses']])
