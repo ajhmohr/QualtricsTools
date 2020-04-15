@@ -253,8 +253,11 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
   } else if (is_matrix_single_answer(question) && 
              question[['Payload']][['Selector']] != "Profile") {
     if (choice <= length(question[['Payload']][['Answers']])) {
+      if (question[['Payload']][['Answers']][[choice]][[1]] != question[['Payload']][['Answers']][[as.character(choice)]][[1]]) {
+        choice <- question[['Payload']][['Answers']][[as.character(choice)]][[1]]
+      } else {
       choice <- question[['Payload']][['Answers']][[choice]][[1]]
-    } 
+    }} 
   
  } else if (is_matrix_single_answer(question) && 
             question[['Payload']][['Selector']] == "Profile" &&
