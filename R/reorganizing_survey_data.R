@@ -1463,9 +1463,13 @@ create_response_column_dictionary <-
         #always equals selected = 1
         choice_text <- choice_text_by_order(question, choice=1)
         
-        recode_value <- recode_value_by_order(question,choice=1)
+        recode_value <- recode_value_by_order(question, choice=1)
         
-        exporttag_option <- paste(question[['Payload']][['DataExportTag']], choice_column, sep="_")
+        #use recode value for export tag if it exists
+        if (choice_column <= length(question[['Payload']][['RecodeValues']])){
+          exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['RecodeValues']][[as.character(choice_column)]][[1]], sep="_")
+        } else {
+        exporttag_option <- paste(question[['Payload']][['DataExportTag']], choice_column, sep="_")}
         
         question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" | ")
         

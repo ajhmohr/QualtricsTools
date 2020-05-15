@@ -318,7 +318,7 @@ recode_value_by_order <- function(question, choice) {
   # checked it or they didn't. Return 1, 0, or
   # "Seen, but Unanswered" depending.
   if (is_mc_multiple_answer(question)) {
-    if (choice %in% c(1, "1")) {
+   if (choice %in% c(1, "1")) {
       choice <- 1
     } else {
       choice <- 0
