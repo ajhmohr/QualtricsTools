@@ -2506,7 +2506,7 @@ create_surveyflow_dictionary <-
       
       
       #arrange survey flow spreadsheet
-      varnamestoinclude <- c("blockorder", "Block", "Type", "blocktype", "questionorder", "QuestionID", "ExportTag", "RandomizeQuestions", "embeddeddata", grep("branch", names(combinedblockflow), value = T), grep("SkipLogic\\.Description", names(combinedblockflow), value = T), grep("Display\\.Logic", names(combinedblockflow), value=T))
+      varnamestoinclude <- c("blockorder", "Block", grep("Type", names(combinedblockflow), value=T), "blocktype", "questionorder", "QuestionID", "ExportTag", "RandomizeQuestions", "embeddeddata", grep("branch", names(combinedblockflow), value = T), grep("SkipLogic\\.Description", names(combinedblockflow), value = T), grep("Display\\.Logic", names(combinedblockflow), value=T))
       combinedblockflow1 <- subset(combinedblockflow, select=c(varnamestoinclude, names(combinedblockflow)[which(names(combinedblockflow) %in% varnamestoinclude == FALSE)]))
       
       suppressWarnings(combinedblockflow2 <- dplyr::arrange(combinedblockflow1, blockorder, questionorder))
