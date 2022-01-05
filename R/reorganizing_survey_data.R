@@ -1465,8 +1465,12 @@ create_response_column_dictionary <-
         
         recode_value <- recode_value_by_order(question, choice=1)
         
-        #use recode value for export tag if it exists
-        if (choice_column <= length(question[['Payload']][['RecodeValues']])){
+        #use indicator from ChoiceOrder if it exists to get the right value
+        if (!is.null(question[['Payload']][['ChoiceOrder']]) & choice_column <= length(question[['Payload']][['ChoiceOrder']])) {
+          exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['RecodeValues']][[as.character(question[['Payload']][['ChoiceOrder']][[choice_column]])]], sep="_")
+        
+        #otherwise, use recode value for export tag if it exists
+       } else if (choice_column <= length(question[['Payload']][['RecodeValues']]) & !is.null(question[['Payload']][['RecodeValues']][[as.character(choice_column)]][[1]])){
           exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['RecodeValues']][[as.character(choice_column)]][[1]], sep="_")
         } else {
         exporttag_option <- paste(question[['Payload']][['DataExportTag']], choice_column, sep="_")}

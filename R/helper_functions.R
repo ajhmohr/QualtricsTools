@@ -232,7 +232,7 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
   # checked it or they didn't. Return TRUE, FALSE, or
   # "Seen, but Unanswered" depending.
   if (is_multiple_answer(question)) {
-    if (choice %in% c(1, "1")) {
+    if (original %in% c(1, "1")) {
       choice <- "Selected"
     } else {
       choice <- "Not Selected"
@@ -242,7 +242,7 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
     # question, getting it directly from
     # the choices.
   } else if (is_mc_single_answer(question)) {
-    if (choice <= length(question[['Payload']][['Choices']])) {
+    if (original <= length(question[['Payload']][['Choices']])) {
       choice <- question[['Payload']][['Choices']][[choice]][[1]]
     }
    
@@ -252,12 +252,18 @@ choice_text_by_order <- function(question, choice, subquestion=NULL) {
     # If that doesn't work, just use the original choice given.
   } else if (is_matrix_single_answer(question) && 
              question[['Payload']][['Selector']] != "Profile") {
-    if (choice <= length(question[['Payload']][['Answers']])) {
-      if (question[['Payload']][['Answers']][[choice]][[1]] != question[['Payload']][['Answers']][[as.character(choice)]][[1]]) {
+    if (original <= length(question[['Payload']][['Answers']])) {
+      if (!is.null(question[['Payload']][['AnswerOrder']]) &
+          !is.null(question[['Payload']][['RecodeValues']]) &
+          original <= length(question[['Payload']][['AnswerOrder']])){
+        indexname <- question[['Payload']][['AnswerOrder']][[original]]
+        choice <- question[['Payload']][['Answers']][[as.character(indexname)]]$Display
+      
+        } else {  if (question[['Payload']][['Answers']][[choice]][[1]] != question[['Payload']][['Answers']][[as.character(choice)]][[1]]) {
         choice <- question[['Payload']][['Answers']][[as.character(choice)]][[1]]
       } else {
       choice <- question[['Payload']][['Answers']][[choice]][[1]]
-    }} 
+    }}} 
   
  } else if (is_matrix_single_answer(question) && 
             question[['Payload']][['Selector']] == "Profile" &&
