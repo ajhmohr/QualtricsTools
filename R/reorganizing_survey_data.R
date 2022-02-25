@@ -1465,17 +1465,21 @@ create_response_column_dictionary <-
         
         recode_value <- recode_value_by_order(question, choice=1)
         
-        #use indicator from ChoiceOrder if it exists to get the right value
-        if (!is.null(question[['Payload']][['ChoiceOrder']]) & choice_column <= length(question[['Payload']][['ChoiceOrder']])) {
+        #use indicator from ChoiceOrder if it exists 
+        #Choice order, if numeric contains the indicator of the recoded variable
+        #If character, is the name of the recoded row
+        #But sometimes it is not a list, so make it character as indicator and name should match if not recoded
+        if (!is.null(question[['Payload']][['ChoiceOrder']]) && 
+            choice_column <= length(question[['Payload']][['ChoiceOrder']])) {
           exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['RecodeValues']][[as.character(question[['Payload']][['ChoiceOrder']][[choice_column]])]], sep="_")
-        
         #otherwise, use recode value for export tag if it exists
        } else if (choice_column <= length(question[['Payload']][['RecodeValues']]) & !is.null(question[['Payload']][['RecodeValues']][[as.character(choice_column)]][[1]])){
           exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['RecodeValues']][[as.character(choice_column)]][[1]], sep="_")
         } else {
         exporttag_option <- paste(question[['Payload']][['DataExportTag']], choice_column, sep="_")}
         
-        question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[choice_column]][['Display']], sep=" | ")
+        #choice order list names uses original, not recoded values - reference choice order to get the right one
+        question_stem_ma <- paste(question[['Payload']][['QuestionTextClean']], question[['Payload']][['Choices']][[as.character(question[['Payload']][['ChoiceOrder']][[choice_column]])]][['Display']], sep=" | ")
         
         #check whether response is exclusive or not and appent to QuestionTypeHuman
         if ("ExclusiveAnswer" %in% names(question[['Payload']][["Answers"]][[choice_column]]) &&
