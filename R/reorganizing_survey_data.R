@@ -1469,13 +1469,18 @@ create_response_column_dictionary <-
         #Choice order, if numeric contains the indicator of the recoded variable
         #If character, is the name of the recoded row
         #But sometimes it is not a list, so make it character as indicator and name should match if not recoded
-        if (!is.null(question[['Payload']][['ChoiceOrder']]) && 
+        if (!is.null(question[['Payload']][['RecodeValues']]) && 
             choice_column <= length(question[['Payload']][['ChoiceOrder']])) {
           exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['RecodeValues']][[as.character(question[['Payload']][['ChoiceOrder']][[choice_column]])]], sep="_")
         #otherwise, use recode value for export tag if it exists
        } else if (choice_column <= length(question[['Payload']][['RecodeValues']]) & !is.null(question[['Payload']][['RecodeValues']][[as.character(choice_column)]][[1]])){
           exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['RecodeValues']][[as.character(choice_column)]][[1]], sep="_")
-        } else {
+          #if no recode values but choice order is present
+        } else if (!is.null(question[['Payload']][['ChoiceOrder']]) && 
+                   choice_column <= length(question[['Payload']][['ChoiceOrder']])){
+          exporttag_option <- paste(question[['Payload']][['DataExportTag']], question[['Payload']][['ChoiceOrder']][[choice_column]], sep="_")
+        }
+        else {
         exporttag_option <- paste(question[['Payload']][['DataExportTag']], choice_column, sep="_")}
         
         #choice order list names uses original, not recoded values - reference choice order to get the right one

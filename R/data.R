@@ -8,3 +8,5 @@
 #'
 #' This is some sample response data, to the matching sample survey provided
 "sample_responses"
+
+## Add a line
