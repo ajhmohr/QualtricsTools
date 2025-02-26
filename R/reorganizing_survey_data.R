@@ -1649,6 +1649,9 @@ create_response_column_dictionary <-
         #Find name of question_column
         namequest_column <- names(question[['Payload']][['ChoiceDataExportTags']])[which(question[['Payload']][['ChoiceDataExportTags']]==paste(question[['Payload']][['DataExportTag']], question_column, sep="_"))]
         
+        #Find name of choice column
+        namechoice_column <- names(question[['Payload']][['RecodeValues']])[which(question[['Payload']][['RecodeValues']]==choice_column)]
+        
         ## Set specific text - this will be the choice that corresponds to the response column 
         if (question_column <= length(question[['Payload']][['Choices']]) &&
             length(namequest_column) > 0 &&
@@ -1662,9 +1665,8 @@ create_response_column_dictionary <-
           specific_text <- ""
         }
         
-        
+    
         question_text_specifics <- paste(question[['Payload']][['QuestionTextClean']], specific_text, sep = "-")
-        
         
         ## Export tag
         # export tag should be the question name _ question_column _ choice_column
@@ -1681,7 +1683,6 @@ create_response_column_dictionary <-
         }
         
 
-         
         
         
         ## Choice text
@@ -1697,8 +1698,8 @@ create_response_column_dictionary <-
             question[['Payload']][['DataExportTag']],
             # Question Data Export Tag repeated (Response Column):
             export_tag,
-            # Question Stem:
-            question_text_specifics,
+            # Question Stem - paste choice text:
+            paste(question_text_specifics, choice_text),
             # Recode Value
             recode_value,
             # Question Choice:
